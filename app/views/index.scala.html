@@ -1,7 +1,9 @@
-@(message: String)
+@(message: String, isLoggedIn: Boolean)
 
-@main("Welcome to Play") {
+@main("Aura") {
 
-    @play20.welcome(message)
+    <h1>Aura</h1>
+    <p>Welcome, please log in with your Rdio account</p>
+    <a href="/rdio/auth">Login</a>
 
 }

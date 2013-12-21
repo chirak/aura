@@ -4,8 +4,10 @@
 
 # Home page
 GET     /                           controllers.Application.index
-GET     /showToken                  controllers.Application.showToken
-GET     /auth                  		controllers.Application.authenticate
+
+# Rdio
+GET     /rdio/auth                  controllers.Rdio.authenticate
+GET     /rdio/getTracksInCollection controllers.Rdio.getTracksInCollection
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

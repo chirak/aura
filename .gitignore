@@ -5,3 +5,8 @@ project/project
 project/target
 target/
 *.swp
+bin/
+conf/apikeys.conf
+.cache
+.target
+logs/
