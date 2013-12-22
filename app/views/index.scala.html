@@ -2,8 +2,16 @@
 
 @main("Aura") {
 
-    <h1>Aura</h1>
+  <h1>Aura</h1>
+  @if(isLoggedIn) {
+    <p>Welcome, make some Rdio API calls:</p>
+    <ul>
+      <li><a href="/rdio/currentUser">currentUser</a></li>
+      <li><a href="/rdio/getTracksInCollection">getTracksInCollection</a></li>
+    </ul>
+  } else {
     <p>Welcome, please log in with your Rdio account</p>
     <a href="/rdio/auth">Login</a>
+  }
 
 }

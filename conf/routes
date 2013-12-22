@@ -7,6 +7,7 @@ GET     /                           controllers.Application.index
 
 # Rdio
 GET     /rdio/auth                  controllers.Rdio.authenticate
+GET     /rdio/currentUser           controllers.Rdio.currentUser
 GET     /rdio/getTracksInCollection controllers.Rdio.getTracksInCollection
 
 # Map static resources from the /public folder to the /assets URL path
