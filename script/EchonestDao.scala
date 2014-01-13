@@ -23,6 +23,11 @@ import play.core.StaticApplication
  * file, collects track meta data from Echonest, and will store meta data in
  * some sort of database. The consumed Json file must be in a similar format to
  * what is retrieved using the Rdio getTracksInCollection method.
+ * 
+ * How to run:
+ * - Start play console
+ * - Load script -> ":load script/EchonestDao.scala"
+ * - Execute script -> "EchonestDao.main(Array("<path-to-rdio-json-data>"))"
  */
 object EchonestDao {
 
@@ -76,18 +81,23 @@ object EchonestDao {
     val buckets     = "&bucket=id:rdio-US&bucket=audio_summary&bucket=tracks"
 
     val url = baseUrl + apiKey + format + resultLimit + artist + title + buckets
-    Logger.info(s"Formatted url for artist - $artistName, track - $trackName: " + url)
     return url
   }
   
   def getEchonestDataForTrack(artistName: String, trackName: String) = {
     val url = formatEchonestUrl(artistName, trackName)
     val futureResponse = WS.url(url).get()
-    val futureResult = futureResponse.map { response => response.json }
+    val futureResult = futureResponse.map { response =>
+      response.json 
+    }
     futureResult
   }
   
-  case class Track(id: String, artistName: String, trackName: String, summary: String)
+  case class Track(id: String, artistName: String, trackName: String, summary: String) {
+    override def toString = {
+      s"artist: $artistName, track: $trackName"
+    }
+  }
   def storeEchonestDataForTrack(json: JsValue) {
 
     def getStatusCodeMsg(json : JsValue) : (String, String) = {
@@ -96,15 +106,15 @@ object EchonestDao {
       (code.toString, msg.toString)
     }
     
-    def deserializeTrack(json: JsValue) = {
+    def deserializeTrack(json: JsValue) : Option[Track] = {
       json match {
         case JsArray(arr) => {
           val trackJson = arr(0)
-          val id          = trackJson \ "id"
-          val artistName  = trackJson \ "artist_name"
-          val trackName   = trackJson \ "title"
-          val summary     = trackJson \ "audio_summary"
-          val track = Track(id.as[JsString].toString, artistName.toString, trackName.toString, summary.toString)
+          val id          = Json.stringify(trackJson \ "id")
+          val artistName  = Json.stringify(trackJson \ "artist_name")
+          val trackName   = Json.stringify(trackJson \ "title")
+          val summary     = Json.stringify(trackJson \ "audio_summary")
+          val track = Track(id, artistName, trackName, summary)
           Some(track)
         }
         case _ => None
@@ -117,7 +127,7 @@ object EchonestDao {
       val success = redisClient.hmset(track.id, trackMap)
       
       if (!success) {
-        Logger.error("Error occured while storing track summary")
+        Logger.error("Error occured while storing track summary: " + track.toString)
       }
     }
 
@@ -133,7 +143,7 @@ object EchonestDao {
     }
   }
   
-  def storeEchonestDataForTracks(trackTuples: Seq[(String, String)], limit: Integer) {
+  def storeEchonestDataForTracks(trackTuples: List[(String, String)], limit: Integer) {
     trackTuples match {
       case Nil => Logger.info("Finished storing Echonest audio summaries")
       case first::rest => {
@@ -142,7 +152,7 @@ object EchonestDao {
 	      // each call takes less than 200ms. That means To complete 20 requests
 	      // we'll only spend 4 seconds. So for now we must wait the remaining 56
 	      // seconds to continue making Echonest calls :(
-          Thread.sleep(58000)
+          Thread.sleep(60000)
           storeEchonestDataForTracks(trackTuples, 20)
         } else {
           val futureResponse = getEchonestDataForTrack(first._1, first._2)
