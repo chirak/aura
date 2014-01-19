@@ -10,3 +10,4 @@ conf/apikeys.conf
 .cache
 .target
 logs/
+*.rdb
